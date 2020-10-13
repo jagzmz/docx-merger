@@ -18,7 +18,7 @@ function DocxMerger(options, files) {
     this._pageBreak = typeof options.pageBreak !== 'undefined' ? !!options.pageBreak : true;
     this._files = [];
     var self = this;
-    (files || []).forEach(function(file) {
+    (files || []).forEach(function (file) {
         self._files.push(new JSZip(file));
     });
     this._contentTypes = {};
@@ -28,7 +28,7 @@ function DocxMerger(options, files) {
 
     this._builder = this._body;
 
-    this.insertPageBreak = function() {
+    this.insertPageBreak = function () {
         var pb = '<w:p> \
 					<w:r> \
 						<w:br w:type="page"/> \
@@ -38,12 +38,12 @@ function DocxMerger(options, files) {
         this._builder.push(pb);
     };
 
-    this.insertRaw = function(xml) {
+    this.insertRaw = function (xml) {
 
         this._builder.push(xml);
     };
 
-    this.mergeBody = function(files) {
+    this.mergeBody = function (files) {
 
         var self = this;
         this._builder = this._body;
@@ -58,26 +58,29 @@ function DocxMerger(options, files) {
         Style.prepareStyles(files, this._style);
         Style.mergeStyles(files, this._style);
 
-        files.forEach(function(zip, index) {
+        files.forEach(function (zip, index) {
             //var zip = new JSZip(file);
             var xml = zip.file("word/document.xml").asText();
             xml = xml.substring(xml.indexOf("<w:body>") + 8);
             xml = xml.substring(0, xml.indexOf("</w:body>"));
-            xml = xml.substring(0, xml.lastIndexOf("<w:sectPr"));
+            const sectPrStart = xml.indexOf('<w:sectPr');
+            const endPrStart = xml.indexOf('</w:sectPr>') + 11;
+            const sectPrPart = xml.slice(sectPrStart, endPrStart);
+            xml = xml.replace(sectPrPart, "")
+            // xml = xml.substring(0, xml.indexOf("<w:sectPr")) ;
 
             self.insertRaw(xml);
-            if (self._pageBreak && index < files.length-1)
-                self.insertPageBreak();
+            if (self._pageBreak && index < files.length - 1) self.insertPageBreak();
         });
     };
 
-    this.save = function(type, callback) {
+    this.save = function (type, callback) {
 
         var zip = this._files[0];
 
         var xml = zip.file("word/document.xml").asText();
         var startIndex = xml.indexOf("<w:body>") + 8;
-        var endIndex = xml.lastIndexOf("<w:sectPr");
+        var endIndex = xml.lastIndexOf("</w:body>");
 
         xml = xml.replace(xml.slice(startIndex, endIndex), this._body.join(''));
 
@@ -89,7 +92,7 @@ function DocxMerger(options, files) {
 
         zip.file("word/document.xml", xml);
 
-        callback(zip.generate({ 
+        callback(zip.generate({
             type: type,
             compression: "DEFLATE",
             compressionOptions: {
@@ -98,12 +101,10 @@ function DocxMerger(options, files) {
         }));
     };
 
-
     if (this._files.length > 0) {
 
         this.mergeBody(this._files);
     }
 }
-
 
 module.exports = DocxMerger;
