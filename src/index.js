@@ -76,8 +76,12 @@ function DocxMerger(options, files) {
         var zip = this._files[0];
 
         var xml = zip.file("word/document.xml").asText();
-        var startIndex = xml.indexOf("<w:body>") + 8;
-        var endIndex = xml.lastIndexOf("<w:sectPr");
+        // var startIndex = xml.indexOf("<w:body>") + 8;
+        // var endIndex = xml.lastIndexOf("<w:sectPr");
+	
+	
+	var startIndex = xml.indexOf("<w:body>") + 8;
+        var endIndex = xml.lastIndexOf("</w:body>");
 
         xml = xml.replace(xml.slice(startIndex, endIndex), this._body.join(''));
 
