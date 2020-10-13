@@ -83,8 +83,9 @@ var generateStyles = function(zip, _style) {
     var endIndex = xml.indexOf("</w:styles>");
 
     // console.log(xml.substring(startIndex, endIndex))
-
-    xml = xml.replace(xml.slice(startIndex, endIndex), _style.join(''));
+    
+    // Commented below, was resulting in duplicate styles and xml tag
+    // xml = xml.replace(xml.slice(startIndex, endIndex), _style.join(''));
 
     // console.log(xml.substring(xml.indexOf("</w:docDefaults>")+16, xml.indexOf("</w:styles>")))
     // console.log(this._style.join(''))
